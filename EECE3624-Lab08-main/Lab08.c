@@ -4,8 +4,8 @@
  *    Author: Dr. Greg Nordstrom
  *   Created: 12/30/17
  *  Mod Date: 3/28/19, 1/17/21
- *  Modified:
- *   ModDate:
+ *  Modified: Tanner Ozanich
+ *   ModDate: 10/20/26
  * 
  * Processor: ATmega128A (on the ReadyAVR board)
  *
@@ -33,29 +33,62 @@
 #define STOPBITS    1 // 1,2
 #define PARITY      0 // 0=none, 1=odd, 2=even
 
-/* Your code here.  */
+void printStr(unsigned char *cp);
 
 int main(void)
 {
-	/* Your code here.  */
-
-    /* See the UARTLibrary.h for available calls.
-	 *     	  // initialize the UART
-	 *     	  uart_init(BAUDRATE, DATABITS, STOPBITS, PARITY);
-	 *
-	 *        // transmit a value (0x41) to the comm port
-	 *        c = 0x41;
-	 *        uart_tx(c);
-	 *
-	 *        // receive a byte from the comm port
-	 *        c = uart_rx();
-	 */
-
 	uart_init(BAUDRATE, DATABITS, STOPBITS, PARITY);
-	while(1)
-	{
-		/* your loop code here */
+	
+	DDRC |= (1 << 3);
+	PORTC |= (1 << 3);
+	
+	
+	unsigned char greeting[86] = 
+	"\r\nRS232 Communications Server\r\n"
+	"Status: Active\r\n"
+	"Tanner Ozanich\r\n"
+	"EECE3624\r\n"
+	"Fall 2026\r\n";
+	
+	printStr(greeting);
+	
+	unsigned char lastChar = 0;
+	unsigned char goodbye[8] = "\r\n\r\nbye!\r\n";
+	
+	while(1){
+		unsigned char data = uart_rx();
 		
+		PORTC &= ~(1 << 3);
+		_delay_ms(75);
+		PORTC |= (1 << 3);
+		
+		if (data == 0x1B){
+			printStr(greeting);
+			lastChar = 0;
+		}else if (data == CR){
+			uart_tx(LF);
+			lastChar = 0;
+		}else if (data == 'e'){
+			lastChar ='e';
+		}else if ((lastChar == 'e') && (data == 'n')){
+			lastChar = 'n';
+		}else if ((lastChar =='n') && (data == 'd')){
+			printStr(goodbye);
+			while(1){
+			}
+		}else{
+			lastChar = 0;
+		}
+		
+		uart_tx(data);
 	}
+	
 	return 0;
+}
+
+void printStr(unsigned char *cp){
+	while(*cp != '\0'){
+		uart_tx(*cp);
+		cp++;
+	}
 }
