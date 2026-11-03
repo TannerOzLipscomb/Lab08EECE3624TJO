@@ -53,7 +53,7 @@ int main(void)
 	printStr(greeting);
 	
 	unsigned char lastChar = 0;
-	unsigned char goodbye[8] = "\r\n\r\nbye!\r\n";
+	unsigned char goodbye[10] = "\r\n\r\nbye!\r\n";
 	
 	while(1){
 		unsigned char data = uart_rx();
@@ -73,6 +73,7 @@ int main(void)
 		}else if ((lastChar == 'e') && (data == 'n')){
 			lastChar = 'n';
 		}else if ((lastChar =='n') && (data == 'd')){
+			uart_tx('d');
 			printStr(goodbye);
 			while(1){
 			}
